@@ -1,105 +1,259 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // DOM elements
-    const userInput = document.getElementById('userInput');
-    const sendButton = document.getElementById('sendButton');
-    const responseContainer = document.getElementById('responseContainer');
-    const outputArea = document.getElementById('outputArea');
-    const placeholder = document.querySelector('.output-placeholder');
-    const chips = document.querySelectorAll('.chip');
+    // DOM Elements
+    const passwordOutput = document.getElementById('passwordOutput');
+    const generateButton = document.getElementById('generateButton');
+    const clearButton = document.getElementById('clearButton');
+    const copyButton = document.getElementById('copyButton');
+    const passwordLength = document.getElementById('passwordLength');
+    const lengthValue = document.getElementById('lengthValue');
+    const strengthBar = document.querySelector('.strength-bar');
+    const strengthText = document.querySelector('.strength-text');
+    const historyContainer = document.getElementById('historyContainer');
+    const clearHistory = document.getElementById('clearHistory');
     const themeToggle = document.getElementById('themeToggle');
+    
+    // Checkboxes
+    const includeUppercase = document.getElementById('includeUppercase');
+    const includeLowercase = document.getElementById('includeLowercase');
+    const includeNumbers = document.getElementById('includeNumbers');
+    const includeSymbols = document.getElementById('includeSymbols');
+    
+    // Chips
+    const chips = document.querySelectorAll('.chip');
 
-    // --- Função Central de Resposta (MESMA LÓGICA) ---
-    function generateResponse(prompt) {
-        // Simula diferentes respostas baseadas no input
-        const lowerPrompt = prompt.toLowerCase();
-        
-        if (lowerPrompt.includes('ia') || lowerPrompt.includes('inteligência') || lowerPrompt.includes('o que é')) {
-            return {
-                text: '🧠 A Inteligência Artificial é um campo da computação que cria sistemas capazes de realizar tarefas que normalmente requerem inteligência humana. Isso inclui aprendizado, raciocínio, percepção e até criatividade. Estamos simulando uma interação básica aqui!',
-                meta: 'Resposta conceitual · Simulação'
-            };
-        } else if (lowerPrompt.includes('poema') || lowerPrompt.includes('verso')) {
-            return {
-                text: '📜 Na tela em branco, um código a brilhar,\nO pensamento artificial a dançar.\nDados e lógica, um novo olhar,\nNexus AI começa a criar.\n\n(Verso gerado por simulação)',
-                meta: 'Poema sintético · Criatividade algorítmica'
-            };
-        } else if (lowerPrompt.includes('produtividade') || lowerPrompt.includes('dica')) {
-            return {
-                text: '⚡ 3 Dicas de produtividade para hoje:\n1. Faça uma pausa a cada 50 minutos (técnica Pomodoro).\n2. Priorize uma tarefa complexa pela manhã.\n3. Use ferramentas de IA para organizar suas notas.',
-                meta: 'Dicas práticas · Otimização de tempo'
-            };
-        } else {
-            // Resposta genérica com eco
-            return {
-                text: `📨 Você disse: "${prompt}"\n\nEsta é uma resposta simulada. Em uma aplicação real, aqui seria integrada uma API de IA (como OpenAI, Gemini, etc.) para gerar uma resposta contextualizada.`,
-                meta: 'Resposta genérica · Modo simulação'
-            };
+    // --- CONSTANTES ---
+    const UPPERCASE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const LOWERCASE = 'abcdefghijklmnopqrstuvwxyz';
+    const NUMBERS = '0123456789';
+    const SYMBOLS = '!@#$%^&*()_+-=[]{}|;:,.<>?';
+
+    // --- ESTADO ---
+    let history = [];
+
+    // --- FUNÇÕES PRINCIPAIS ---
+
+    function generatePassword() {
+        const length = parseInt(passwordLength.value);
+        let chars = '';
+        let password = '';
+
+        if (includeUppercase.checked) chars += UPPERCASE;
+        if (includeLowercase.checked) chars += LOWERCASE;
+        if (includeNumbers.checked) chars += NUMBERS;
+        if (includeSymbols.checked) chars += SYMBOLS;
+
+        if (chars === '') {
+            alert('Selecione pelo menos uma opção de caracteres!');
+            return null;
         }
+
+        // Garante pelo menos um caractere de cada tipo selecionado
+        let guaranteed = '';
+        if (includeUppercase.checked) guaranteed += UPPERCASE[Math.floor(Math.random() * UPPERCASE.length)];
+        if (includeLowercase.checked) guaranteed += LOWERCASE[Math.floor(Math.random() * LOWERCASE.length)];
+        if (includeNumbers.checked) guaranteed += NUMBERS[Math.floor(Math.random() * NUMBERS.length)];
+        if (includeSymbols.checked) guaranteed += SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+
+        // Preenche o resto
+        for (let i = guaranteed.length; i < length; i++) {
+            password += chars[Math.floor(Math.random() * chars.length)];
+        }
+
+        // Embaralha para não ficar com os garantidos no início
+        password = guaranteed + password;
+        password = password.split('').sort(() => Math.random() - 0.5).join('');
+        
+        // Corta no tamanho exato
+        password = password.slice(0, length);
+
+        return password;
     }
 
-    // --- Função para exibir resposta ---
-    function displayResponse(prompt) {
-        const response = generateResponse(prompt);
-        
-        // Remove placeholder se existir
-        if (placeholder) placeholder.style.display = 'none';
-        
-        // Cria o elemento de resposta
-        const responseDiv = document.createElement('div');
-        responseDiv.className = 'response-container';
-        responseDiv.innerHTML = `
-            <p>${response.text.replace(/\n/g, '<br>')}</p>
-            <div class="meta">${response.meta}</div>
-        `;
-        
-        // Adiciona ao container (substitui a anterior se houver)
-        responseContainer.innerHTML = '';
-        responseContainer.appendChild(responseDiv);
-        
-        // Rolagem suave para a resposta
-        responseContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-
-    // --- Event Listeners ---
-
-    // Botão enviar
-    sendButton.addEventListener('click', () => {
-        const prompt = userInput.value.trim();
-        if (prompt === '') {
-            userInput.focus();
+    function updateStrength(password) {
+        if (!password || password === 'Clique em Gerar') {
+            strengthBar.className = 'strength-bar';
+            strengthText.textContent = 'Força: ';
             return;
         }
-        displayResponse(prompt);
-        // Limpa o input (opcional) 
-        // userInput.value = ''; 
-    });
 
-    // Tecla Enter (sem Shift) para enviar
-    userInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            sendButton.click();
+        let score = 0;
+        if (password.length >= 8) score++;
+        if (password.length >= 12) score++;
+        if (password.length >= 16) score++;
+        if (/[A-Z]/.test(password)) score++;
+        if (/[a-z]/.test(password)) score++;
+        if (/[0-9]/.test(password)) score++;
+        if (/[^A-Za-z0-9]/.test(password)) score++;
+
+        let level = '';
+        if (score <= 3) level = 'weak';
+        else if (score <= 5) level = 'medium';
+        else if (score <= 7) level = 'strong';
+        else level = 'very-strong';
+
+        strengthBar.className = `strength-bar ${level}`;
+        
+        const labels = {
+            'weak': 'Fraca',
+            'medium': 'Média',
+            'strong': 'Forte',
+            'very-strong': 'Muito Forte'
+        };
+        strengthText.textContent = `Força: ${labels[level]}`;
+    }
+
+    function displayPassword(password) {
+        if (password) {
+            passwordOutput.value = password;
+            updateStrength(password);
+        } else {
+            passwordOutput.value = 'Clique em Gerar';
+            updateStrength('');
+        }
+    }
+
+    function addToHistory(password) {
+        if (!password || password === 'Clique em Gerar') return;
+        
+        const entry = {
+            password: password,
+            date: new Date().toLocaleString()
+        };
+        
+        history.unshift(entry); // Adiciona no início
+        if (history.length > 20) history.pop(); // Limita a 20 itens
+        renderHistory();
+    }
+
+    function renderHistory() {
+        const placeholder = document.querySelector('.history-placeholder');
+        
+        if (history.length === 0) {
+            historyContainer.innerHTML = `
+                <div class="history-placeholder">
+                    <span class="placeholder-icon">🕒</span>
+                    <p>Nenhuma senha gerada ainda</p>
+                </div>
+            `;
+            return;
+        }
+
+        historyContainer.innerHTML = '';
+        history.forEach((entry, index) => {
+            const item = document.createElement('div');
+            item.className = 'history-item';
+            item.innerHTML = `
+                <span class="password">${entry.password}</span>
+                <div style="display:flex;align-items:center;gap:0.5rem;">
+                    <span class="date">${entry.date}</span>
+                    <button class="btn-copy-small" data-index="${index}" title="Copiar">📋</button>
+                </div>
+            `;
+            historyContainer.appendChild(item);
+        });
+
+        // Adiciona eventos de cópia nos itens do histórico
+        document.querySelectorAll('.btn-copy-small').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const index = parseInt(e.target.dataset.index);
+                const password = history[index].password;
+                copyToClipboard(password);
+            });
+        });
+    }
+
+    function copyToClipboard(text) {
+        if (!text || text === 'Clique em Gerar') {
+            alert('Gere uma senha primeiro!');
+            return;
+        }
+        
+        navigator.clipboard.writeText(text).then(() => {
+            const originalText = copyButton.innerHTML;
+            copyButton.innerHTML = '✅';
+            setTimeout(() => {
+                copyButton.innerHTML = originalText;
+            }, 1500);
+        }).catch(() => {
+            // Fallback para navegadores antigos
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            alert('Senha copiada!');
+        });
+    }
+
+    function clearAll() {
+        passwordOutput.value = 'Clique em Gerar';
+        updateStrength('');
+        history = [];
+        renderHistory();
+    }
+
+    // --- EVENT LISTENERS ---
+
+    generateButton.addEventListener('click', () => {
+        const password = generatePassword();
+        if (password) {
+            displayPassword(password);
+            addToHistory(password);
         }
     });
 
-    // Chips de ação rápida
+    copyButton.addEventListener('click', () => {
+        copyToClipboard(passwordOutput.value);
+    });
+
+    clearButton.addEventListener('click', clearAll);
+
+    clearHistory.addEventListener('click', () => {
+        if (history.length === 0) return;
+        if (confirm('Limpar todo o histórico de senhas?')) {
+            history = [];
+            renderHistory();
+        }
+    });
+
+    // Atualiza o valor do comprimento
+    passwordLength.addEventListener('input', () => {
+        lengthValue.textContent = passwordLength.value;
+    });
+
+    // Chips de comprimento rápido
     chips.forEach(chip => {
         chip.addEventListener('click', () => {
-            const prompt = chip.getAttribute('data-prompt') || chip.textContent.trim();
-            userInput.value = prompt;
-            displayResponse(prompt);
+            const length = parseInt(chip.dataset.length);
+            if (length) {
+                passwordLength.value = length;
+                lengthValue.textContent = length;
+                generateButton.click();
+            }
         });
     });
 
-    // Alternar tema (escuro/claro)
+    // Tecla Enter no campo (gera senha)
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && document.activeElement === passwordOutput) {
+            generateButton.click();
+        }
+    });
+
+    // Alternar tema escuro
     themeToggle.addEventListener('click', () => {
         document.body.classList.toggle('dark-mode');
         themeToggle.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
     });
 
-    // --- Inicialização com uma mensagem amigável (opcional) ---
-    // Descomente abaixo se quiser uma mensagem inicial:
-    // setTimeout(() => {
-    //     displayResponse('Olá! Como posso ajudar você hoje?');
-    // }, 300);
+    // --- INICIALIZAÇÃO ---
+    // Gera uma senha padrão ao carregar
+    setTimeout(() => {
+        const defaultPassword = generatePassword();
+        if (defaultPassword) {
+            displayPassword(defaultPassword);
+            addToHistory(defaultPassword);
+        }
+    }, 200);
 });
