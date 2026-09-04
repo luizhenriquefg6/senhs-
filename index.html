@@ -3,17 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus AI · Interface Inteligente</title>
+    <title>Nexus Pass · Gerador de Senhas</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Fonte moderna -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet">
 </head>
 <body>
     <div id="app">
         <header class="header">
             <div class="logo">
-                <span class="icon">✦</span>
-                <h1>Nexus<span>AI</span></h1>
+                <span class="icon">🔐</span>
+                <h1>Nexus<span>Pass</span></h1>
             </div>
             <nav class="nav-controls">
                 <button id="themeToggle" aria-label="Alternar tema">🌙</button>
@@ -21,32 +20,85 @@
         </header>
 
         <main class="main-container">
-            <section class="input-area">
-                <div class="input-wrapper">
-                    <textarea id="userInput" placeholder="Digite seu comando ou pergunta..." rows="3"></textarea>
-                    <button id="sendButton" class="btn-primary">
-                        <span>Enviar</span>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
-                    </button>
+            <!-- Área do Gerador -->
+            <section class="generator-area">
+                <div class="password-display">
+                    <div class="password-wrapper">
+                        <input type="text" id="passwordOutput" readonly value="Clique em Gerar" class="password-field">
+                        <button id="copyButton" class="btn-copy" title="Copiar senha">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="strengthIndicator" class="strength-indicator">
+                        <span class="strength-text">Força: </span>
+                        <span class="strength-bar"></span>
+                    </div>
                 </div>
+
+                <div class="controls">
+                    <div class="control-group">
+                        <label for="passwordLength">Comprimento: <span id="lengthValue">16</span></label>
+                        <input type="range" id="passwordLength" min="6" max="32" value="16" class="slider">
+                    </div>
+
+                    <div class="options-grid">
+                        <label class="option-item">
+                            <input type="checkbox" id="includeUppercase" checked>
+                            <span>ABC Maiúsculas</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="checkbox" id="includeLowercase" checked>
+                            <span>abc minúsculas</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="checkbox" id="includeNumbers" checked>
+                            <span>123 Números</span>
+                        </label>
+                        <label class="option-item">
+                            <input type="checkbox" id="includeSymbols" checked>
+                            <span>!#@ Símbolos</span>
+                        </label>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button id="generateButton" class="btn-primary">
+                            <span>⚡ Gerar Senha</span>
+                        </button>
+                        <button id="clearButton" class="btn-secondary">
+                            <span>🔄 Limpar</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Ações rápidas -->
                 <div class="quick-actions">
-                    <button class="chip" data-prompt="Explique o conceito de IA">🤖 O que é IA?</button>
-                    <button class="chip" data-prompt="Crie um poema curto">📝 Poema</button>
-                    <button class="chip" data-prompt="Dicas de produtividade">⚡ Produtividade</button>
+                    <button class="chip" data-length="8">🔑 8 caracteres</button>
+                    <button class="chip" data-length="16">🔐 16 caracteres</button>
+                    <button class="chip" data-length="24">🛡️ 24 caracteres</button>
+                    <button class="chip" data-length="32">⚔️ 32 caracteres</button>
                 </div>
             </section>
 
-            <section class="output-area" id="outputArea">
-                <div class="output-placeholder">
-                    <span class="placeholder-icon">🧠</span>
-                    <p>Aguardando sua interação...</p>
+            <!-- Histórico de senhas -->
+            <section class="history-area" id="historyArea">
+                <div class="history-header">
+                    <h3>📜 Histórico</h3>
+                    <button id="clearHistory" class="btn-text">Limpar histórico</button>
                 </div>
-                <div id="responseContainer" class="response-container"></div>
+                <div id="historyContainer" class="history-container">
+                    <div class="history-placeholder">
+                        <span class="placeholder-icon">🕒</span>
+                        <p>Nenhuma senha gerada ainda</p>
+                    </div>
+                </div>
             </section>
         </main>
 
         <footer class="footer">
-            <p>Nexus AI · Simulação de interface inteligente</p>
+            <p>Nexus Pass · Gerador de senhas seguras</p>
         </footer>
     </div>
 
